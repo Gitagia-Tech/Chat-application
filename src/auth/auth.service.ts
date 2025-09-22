@@ -1,13 +1,31 @@
+// src/auth/auth.service.ts
 import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { UsersService } from 'src/users/users.service'; // ✅ import UsersService
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(private usersService: UsersService) {} // ✅ inject UsersService
+    
+  // 🔹 Validate user for LocalStrategy
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.usersService.findOneByEmail(email); // ✅ check user by email
+    if (user && (await bcrypt.compare(pass, user.password))) {
+      const { password, ...result } = user; // hide password before returning
+      return result;
+    }
+    return null;
   }
 
+  // Example login (optional, for JWT)
+  async login(user: any) {
+    return {
+      message: 'Login successful',
+      user,
+    };
+  }
+
+  // You can keep the generated CRUD stuff if needed
   findAll() {
     return `This action returns all auth`;
   }
@@ -16,7 +34,7 @@ export class AuthService {
     return `This action returns a #${id} auth`;
   }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
+  update(id: number, updateAuthDto: any) {
     return `This action updates a #${id} auth`;
   }
 
@@ -24,3 +42,4 @@ export class AuthService {
     return `This action removes a #${id} auth`;
   }
 }
+
